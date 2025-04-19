@@ -112,20 +112,9 @@ local ESPToggle = MainTab:CreateToggle({
         end
     end,
 })
+-- auto farm
 
+local Button2 = MainTab:CreateToggle({
+   Name = "auto farm (not finish)",
 
--Auto Farm
-local AutoFarmToggle = MainTab:CreateToggle({
-    Name         = "Auto Farm",
-    CurrentValue = false,
-    Flag         = "Toggle_Auto Farm",
-    Callback     = function(enabled)
-        if enabled then
-            Enable Auto Farm()
-            print("Auto Farm enabled")
-        else
-            Disable Auto Farm ()
-            print("Auto Farm disabled")
-        end
-    end,
 })
