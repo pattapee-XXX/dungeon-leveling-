@@ -62,34 +62,43 @@ local Button2 = TPTab:CreateButton({
 })
 
 local Button3 = TPTab:CreateButton({
-   Name = "Blacksmith ",
+   Name = "Blacksmith",
    Callback = function()
-        local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        rootPart.CFrame = CFrame.new(-475.709595, 2.87319994, 154.40799, 0, 0.00405792193, 0.999991775, 1, 0, 0, 0, 0.999991775, -0.00405792193) 
+      local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+      rootPart.CFrame = CFrame.new(-475.709595, 2.87319994, 154.40799, 0, 0.00405792193, 0.999991775, 1, 0, 0, 0, 0.999991775, -0.00405792193)
+   end,
 })
+
 local Button4 = TPTab:CreateButton({
    Name = "Alchemist",
    Callback = function()
-        local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        rootPart.CFrame = CFrame.new(-500.40799, 2.829, 50.4510002, 0, -0.990338326, -0.138663411, 1, 0, 0, 0, -0.138663411, 0.990338326) 
+      local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+      rootPart.CFrame = CFrame.new(-500.40799, 2.829, 50.4510002, 0, -0.990338326, -0.138663411, 1, 0, 0, 0, -0.138663411, 0.990338326)
+   end,
 })
+
 local Button5 = TPTab:CreateButton({
    Name = "RubyMaster",
    Callback = function()
-        local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        rootPart.CFrame = CFrame.new(-500.406891, 2.80050063, 82.5138016, 0, 0.139957413, 0.990156293, 1, 0, 0, 0, 0.990156293, -0.139957413) 
+      local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+      rootPart.CFrame = CFrame.new(-500.406891, 2.80050063, 82.5138016, 0, 0.139957413, 0.990156293, 1, 0, 0, 0, 0.990156293, -0.139957413)
+   end,
 })
+
 local Button6 = TPTab:CreateButton({
    Name = "WarehouseMaster",
    Callback = function()
-        local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        rootPart.CFrame = CFrame.new(-457.394348, 2.8292048, 107.099541, -6.88674051e-09, -0.607432663, 0.79437083, 1, -7.27344798e-07, -6.56943939e-07, 9.31653346e-07, 0.79437083, 0.607432663) 
+      local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+      rootPart.CFrame = CFrame.new(-457.394348, 2.8292048, 107.099541, -6.88674051e-09, -0.607432663, 0.79437083, 1, -7.27344798e-07, -6.56943939e-07, 9.31653346e-07, 0.79437083, 0.607432663)
+   end,
 })
+
 local Button7 = TPTab:CreateButton({
    Name = "BadBoyMaster",
    Callback = function()
-        local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        rootPart.CFrame = CFrame.new(-610.511414, 2.57240009, 124.405296, 0, 0.101193145, -0.994867384, 1, 0, 0, 0, -0.994867384, -0.101193145) 
+      local rootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+      rootPart.CFrame = CFrame.new(-610.511414, 2.57240009, 124.405296, 0, 0.101193145, -0.994867384, 1, 0, 0, 0, -0.994867384, -0.101193145)
+   end,
 })
 
 -- ✅ Glow ESP for Chest & Monster
