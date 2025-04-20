@@ -69,52 +69,220 @@ local Button3 = TPTab:CreateButton({
    end,
 })
 
--- ✅ Glow ESP for Chest & Monster (Orc/Goblin)
-local function EnableGlowESP()
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") and not obj:FindFirstChild("Highlight") then
-            local name = obj.Name:lower()
-            if name:find("chest") or name:find("orc") or name:find("goblin") then
-                local hl = Instance.new("Highlight")
-                hl.Name             = "Highlight"
-                hl.Adornee          = obj
-                hl.FillColor        = name:find("chest") and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(255, 0, 0)
-                hl.OutlineColor     = Color3.new(1, 1, 1)
-                hl.FillTransparency = 0.25
-                hl.Parent           = obj
+-- ✅ Glow ESP for Chest & Monster
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local MaxDistance = 100
+local ESPEnabled = false
+
+-- ฟังก์ชันสำหรับสร้าง Highlight
+local function createHighlight(target, fillColor)
+    if not target:FindFirstChildOfClass("Highlight") then
+        local highlight = Instance.new("Highlight")
+        highlight.Name = "Highlight"
+        highlight.FillColor = fillColor
+        highlight.OutlineColor = Color3.new(1, 1, 1)
+        highlight.FillTransparency = 0.25
+        highlight.OutlineTransparency = 0
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.Parent = target
+    end
+end
+
+-- ฟังก์ชันสำหรับลบ Highlight
+local function removeHighlight(target)
+    local highlight = target:FindFirstChildOfClass("Highlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
+-- ฟังก์ชันลบ Highlight ทั้งหมดในระยะ
+local function clearAllHighlights()
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            removeHighlight(obj)
+        end
+    end
+end
+
+-- ฟังก์ชันสำหรับอัปเดต Highlight
+local function updateHighlights()
+    if not ESPEnabled then return end
+
+    local character = LocalPlayer.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+
+    local hrp = character.HumanoidRootPart
+
+    for _, obj in ipairs(Workspace:GetDescendants()) do
+        if obj:IsA("Model") then
+            local primaryPart = obj.PrimaryPart or obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+
+            if primaryPart then
+                local distance = (primaryPart.Position - hrp.Position).Magnitude
+
+                if obj:FindFirstChild("Humanoid") and Players:GetPlayerFromCharacter(obj) == nil then
+                    -- MOB
+                    if distance <= MaxDistance then
+                        createHighlight(obj, Color3.fromRGB(255, 0, 0))
+                    else
+                        removeHighlight(obj)
+                    end
+                elseif obj.Name:lower() == "chest" then
+                    -- CHEST
+                    if distance <= MaxDistance then
+                        createHighlight(obj, Color3.fromRGB(255, 215, 0))
+                    else
+                        removeHighlight(obj)
+                    end
+                end
             end
         end
     end
 end
 
-local function DisableGlowESP()
-    for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("Model") then
-            local hl = obj:FindFirstChild("Highlight")
-            if hl then hl:Destroy() end
-        end
-    end
-end
+-- อัปเดตเมื่อเปิดใช้งาน
+RunService.Heartbeat:Connect(function()
+    updateHighlights()
+end)
 
--- ✅ Toggle in Misc tab
-local MiscTab = Window:CreateTab("🎲 Misc", nil)
+-- ✅ เชื่อมกับ UI Toggle
 local ESPToggle = MainTab:CreateToggle({
-    Name         = "ESP: Chest & Monster",
+    Name = "ESP: Chest & Monster",
     CurrentValue = false,
-    Flag         = "Toggle_ESPChestMonster",
-    Callback     = function(enabled)
-        if enabled then
-            EnableGlowESP()
-            print("ESP enabled")
-        else
-            DisableGlowESP()
-            print("ESP disabled")
+    Flag = "Toggle_ESPChestMonster",
+    Callback = function(enabled)
+        ESPEnabled = enabled
+        if not enabled then
+            clearAllHighlights()
         end
     end,
 })
--- auto farm
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-local Button2 = MainTab:CreateToggle({
-   Name = "auto farm (not finish)",
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hrp = character:WaitForChild("HumanoidRootPart")
 
+local autoFarmEnabled = false
+local attackCooldown = 0.5
+local lastAttackTime = 0
+
+-- ฟังก์ชัน: หามอนสเตอร์ในระยะ ยกเว้นผู้เล่นและ TrainingPole
+local function getMonstersInRange()
+    local monsters = {}
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj:FindFirstChild("HumanoidRootPart") then
+            if game.Players:GetPlayerFromCharacter(obj) == nil and obj.Name ~= "TrainingPole" then
+                local monsterHRP = obj.HumanoidRootPart
+                local distance = (hrp.Position - monsterHRP.Position).Magnitude
+                if distance < 100 then
+                    table.insert(monsters, monsterHRP)
+                end
+            end
+        end
+    end
+    return monsters
+end
+
+-- ฟังก์ชัน: ย้ายตัวละครไปด้านหลังมอนสเตอร์
+local function stayBehind(monsterHRP)
+    local offset = monsterHRP.CFrame.LookVector * -3 + Vector3.new(0, 2, 0)
+    local newPos = monsterHRP.Position + offset
+    hrp.CFrame = CFrame.new(newPos, monsterHRP.Position)
+end
+
+-- ลูปหลัก
+RunService.Heartbeat:Connect(function()
+    if autoFarmEnabled then
+        local monsters = getMonstersInRange()
+        for _, monster in ipairs(monsters) do
+            stayBehind(monster)
+            -- สามารถเพิ่มการกดโจมตีอัตโนมัติที่นี่ได้
+        end
+    end
+end)
+
+-- ✅ เชื่อมกับปุ่ม Toggle ของ UI
+local AUTOMOB = MainTab:CreateToggle({
+    Name = "Auto Mob",
+    CurrentValue = false,
+    Flag = "AutoMobToggle",
+    Callback = function(enabled)
+        autoFarmEnabled = enabled
+        print("Auto Mob is now", enabled and "ON" or "OFF")
+    end,
 })
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local AutoAttackEnabled = false
+local Interval = 0.1 -- ความถี่ในการคลิก
+local AutoAttackRunning = false
+
+-- ฟังก์ชันคลิก
+local function click()
+    if AutoAttackEnabled and not UserInputService:GetFocusedTextBox() then
+        VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, true, game, 1)
+        VirtualInputManager:SendMouseButtonEvent(Mouse.X, Mouse.Y, 0, false, game, 1)
+    end
+end
+
+-- ฟังก์ชันวนคลิกเมื่อเปิด
+local function startAutoAttack()
+    if AutoAttackRunning then return end
+    AutoAttackRunning = true
+    task.spawn(function()
+        while AutoAttackEnabled do
+            click()
+            task.wait(Interval)
+        end
+        AutoAttackRunning = false
+    end)
+end
+
+-- ✅ Toggle สำหรับเปิด/ปิด Auto Attack
+local AutoAttack = MainTab:CreateToggle({
+    Name = "Auto Attack",
+    CurrentValue = false,
+    Flag = "AutoAttackToggle",
+    Callback = function(enabled)
+        AutoAttackEnabled = enabled
+        if AutoAttackEnabled then
+            startAutoAttack()
+            print("Auto Attack ON")
+        else
+            print("Auto Attack OFF")
+        end
+    end,
+})
+
+-- ✅ Keybind สำหรับเปิด/ปิด Auto Attack
+local Keybind = MainTab:CreateKeybind({
+    Name = "Toggle Auto Attack Keybind",
+    CurrentKeybind = "F",
+    HoldToInteract = false,
+    Flag = "AutoAttackKeybind",
+    Callback = function()
+        AutoAttackEnabled = not AutoAttackEnabled
+        AutoAttack:Set(AutoAttackEnabled) -- อัปเดต Toggle ให้ตรงกัน
+        if AutoAttackEnabled then
+            startAutoAttack()
+            print("Auto Attack toggled ON by key")
+        else
+            print("Auto Attack toggled OFF by key")
+        end
+    end,
+})
+
+
